@@ -1,6 +1,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/ioctl.h>
 #include <unistd.h>
 
 int verify(int argc, char *files[]) {
@@ -32,11 +33,18 @@ int cleanup(int argc, int fds[]) {
 
 int main(int argc, char *argv[]) {
   int *fds;
+  char *buf;
+  int screen_size;
+  struct winsize w;
+  ioctl(0, TIOCGWINSZ, &w);
+
+  screen_size = w.ws_row * w.ws_col;
+  buf = (char *)malloc(screen_size * sizeof(char));
+
   if (argc < 2 || verify(argc, argv)) return 1;
 
-  for (int i = 0; i < argc - 1; i++) printf("%s, ", argv[i]);
-  printf("%s\n", argv[argc - 1]);
-
   open_files(argc, argv, &fds);
+  read(fds[0], buf, screen_size);
+  printf("%s\n", buf);
   return cleanup(argc, fds);
 }
