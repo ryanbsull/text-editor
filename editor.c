@@ -21,13 +21,19 @@ int open_files(int argc, char *files[], int *fds[]) {
   return 1;
 }
 
-int cleanup(int argc, int fds[]) {
+int cleanup(int argc, int fds[], char *buf) {
   for (int i = 1; i < argc; i++) {
     if (close(fds[i - 1]) == -1) {
       printf("ERROR: Unable to close file: %d\n", fds[i - 1]);
       return 1;
     }
   }
+  free(buf);
+  return 0;
+}
+
+int clear_buffer(char *buf, int size) {
+  for (int i = 0; i < size; i++) buf[i] = '\0';
   return 0;
 }
 
@@ -46,5 +52,12 @@ int main(int argc, char *argv[]) {
   open_files(argc, argv, &fds);
   read(fds[0], buf, screen_size);
   printf("%s\n", buf);
-  return cleanup(argc, fds);
+
+  clear_buffer(buf, screen_size);
+  if (argc > 2) {
+    read(fds[1], buf, screen_size);
+    printf("%s\n", buf);
+  }
+
+  return cleanup(argc, fds, buf);
 }
