@@ -37,6 +37,12 @@ int clear_buffer(char *buf, int size) {
   return 0;
 }
 
+int change_view(char *buf, int size, int *fds, int new_fd) {
+  clear_buffer(buf, size);
+  read(fds[new_fd], buf, size);
+  return 0;
+}
+
 int main(int argc, char *argv[]) {
   int *fds;
   char *buf;
@@ -53,9 +59,8 @@ int main(int argc, char *argv[]) {
   read(fds[0], buf, screen_size);
   printf("%s\n", buf);
 
-  clear_buffer(buf, screen_size);
   if (argc > 2) {
-    read(fds[1], buf, screen_size);
+    change_view(buf, screen_size, fds, 1);
     printf("%s\n", buf);
   }
 
