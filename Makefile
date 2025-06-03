@@ -3,9 +3,9 @@ CFLAGS = -lm -g
 SRC_FILES := $(wildcard src/*.c)
 OUTPUT_FILES := $(patsubst src/%.c,build/%.o,$(SRC_FILES))
 
-all: t-edit
+all: te
 
-t-edit: $(OUTPUT_FILES) editor.c
+te: $(OUTPUT_FILES) editor.c
 	$(CC) $(CFLAGS) $^ -o $@
 
 build/%.o: src/%.c
@@ -13,5 +13,5 @@ build/%.o: src/%.c
 	$(CC) -g -c $^ -o $@ 
 
 clean:
-	rm -rf build/ t-edit*
+	rm -rf build/ te*
 
