@@ -1,6 +1,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
 
@@ -43,26 +44,50 @@ int change_view(char *buf, int size, int *fds, int new_fd) {
   return 0;
 }
 
+int get_operation(char *buf) {
+  if (strlen(buf) < 1) return -1;
+  switch (buf[0]) {
+    case 'q':
+      return -1;
+    case 'p':
+      return 1;
+    case 'i':
+      return 2;
+    case 'a':
+      return 3;
+  }
+  return 0;
+}
+
 int main(int argc, char *argv[]) {
   int *fds;
-  char *buf;
-  int screen_size;
+  char *file_buf, *in_buf;
+  int screen_size, done = 0, op = 0;
   struct winsize w;
   ioctl(0, TIOCGWINSZ, &w);
 
   screen_size = w.ws_row * w.ws_col;
-  buf = (char *)malloc(screen_size * sizeof(char));
+  file_buf = (char *)malloc(screen_size * sizeof(char));
+  in_buf = (char *)malloc(screen_size * sizeof(char));
 
   if (argc < 2 || verify(argc, argv)) return 1;
 
   open_files(argc, argv, &fds);
-  read(fds[0], buf, screen_size);
-  printf("%s\n", buf);
 
-  if (argc > 2) {
-    change_view(buf, screen_size, fds, 1);
-    printf("%s\n", buf);
+  while (!done) {
+    // clear input buffer
+    memset(in_buf, 0, screen_size);
+    scanf("%s", in_buf);
+    // flush stdin
+    while ((getchar()) != '\n');
+
+    op = get_operation(in_buf);
+    if (op < 0) done = 1;
+    if (op == 1 && strlen(in_buf) > 1) {
+      change_view(file_buf, screen_size, fds, atoi(&in_buf[1]));
+      printf("%s\n", file_buf);
+    }
   }
 
-  return cleanup(argc, fds, buf);
+  return cleanup(argc, fds, file_buf);
 }
