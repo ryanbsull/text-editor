@@ -22,14 +22,15 @@ int open_files(int argc, char *files[], int *fds[]) {
   return 1;
 }
 
-int cleanup(int argc, int fds[], char *buf) {
+int cleanup(int argc, int fds[], char *in_buf, char *f_buf) {
   for (int i = 1; i < argc; i++) {
     if (close(fds[i - 1]) == -1) {
       printf("ERROR: Unable to close file: %d\n", fds[i - 1]);
       return 1;
     }
   }
-  free(buf);
+  free(in_buf);
+  free(f_buf);
   return 0;
 }
 
@@ -55,11 +56,14 @@ int get_operation(char *buf) {
       return 2;
     case 'a':
       return 3;
+    case 'n':
+      return 4;
   }
   return 0;
 }
 
 int main(int argc, char *argv[]) {
+  static int current_file = 0;
   int *fds;
   char *file_buf, *in_buf;
   int screen_size, done = 0, op = 0;
@@ -82,12 +86,19 @@ int main(int argc, char *argv[]) {
     while ((getchar()) != '\n');
 
     op = get_operation(in_buf);
-    if (op < 0) done = 1;
-    if (op == 1 && strlen(in_buf) > 1) {
-      change_view(file_buf, screen_size, fds, atoi(&in_buf[1]));
-      printf("%s\n", file_buf);
+    switch (op) {
+      case 0:
+        done = 1;
+        break;
+      case 1:
+        change_view(file_buf, screen_size, fds, current_file);
+        printf("%s\n", file_buf);
+        break;
+      case 4:
+        current_file = (current_file + 1) % (argc - 1);
+        break;
     }
   }
 
-  return cleanup(argc, fds, file_buf);
+  return cleanup(argc, fds, in_buf, file_buf);
 }
