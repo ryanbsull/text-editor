@@ -49,7 +49,7 @@ int get_operation(char *buf) {
   if (strlen(buf) < 1) return -1;
   switch (buf[0]) {
     case 'q':
-      return -1;
+      return 0;
     case 'p':
       return 1;
     case 'i':
