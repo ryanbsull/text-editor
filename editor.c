@@ -5,6 +5,31 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
+int get_user_input(char *input, int *bytes_read, int buf_size) {
+  memset(input, 0, buf_size);
+  char *buffer = NULL;
+  int len = 0;
+  size_t size = 0;
+  while (!feof(stdin)) {
+    len = getline(&buffer, &size, stdin);
+    printf("%d\n", len);
+    if (len > 0) {
+      if (len == 2 && buffer[0] == '.') break;
+      if (*bytes_read + len > buf_size) return 1;
+      strcat(input, buffer);
+      *bytes_read += len;
+    }
+  }
+  return 0;
+}
+
+int append(int fds[], int file, char *wr_buf, int len) {
+  lseek(fds[file], 0, SEEK_END);
+  write(fds[file], wr_buf, len);
+  lseek(fds[file], 0, SEEK_SET);
+  return 0;
+}
+
 int verify(int argc, char *files[]) {
   for (int i = 1; i < argc; i++) {
     if (access(files[i], F_OK)) return 1;
@@ -46,26 +71,9 @@ int change_view(char *buf, int size, int *fds, int new_fd) {
   return 0;
 }
 
-int get_operation(char *buf) {
-  if (strlen(buf) < 1) return -1;
-  switch (buf[0]) {
-    case 'q':
-      return 0;
-    case 'p':
-      return 1;
-    case 'i':
-      return 2;
-    case 'a':
-      return 3;
-    case 'n':
-      return 4;
-  }
-  return 0;
-}
-
 int main(int argc, char *argv[]) {
   static int current_file = 0;
-  int *fds;
+  int *fds, buf_len;
   char *file_buf, *in_buf;
   int screen_size, done = 0, op = 0;
   struct winsize w;
@@ -86,16 +94,20 @@ int main(int argc, char *argv[]) {
     // flush stdin
     while ((getchar()) != '\n');
 
-    op = get_operation(in_buf);
-    switch (op) {
-      case 0:
+    if (strlen(in_buf) < 1) return 1;
+    switch (in_buf[0]) {
+      case 'q':
         done = 1;
         break;
-      case 1:
+      case 'p':
         change_view(file_buf, screen_size, fds, current_file);
         printf("%s\n", file_buf);
         break;
-      case 4:
+      case 'a':
+        get_user_input(in_buf, &buf_len, screen_size);
+        append(fds, current_file, in_buf, buf_len);
+        break;
+      case 'n':
         current_file = (current_file + 1) % (argc - 1);
         break;
     }
