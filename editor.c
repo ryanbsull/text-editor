@@ -42,6 +42,7 @@ int clear_buffer(char *buf, int size) {
 int change_view(char *buf, int size, int *fds, int new_fd) {
   clear_buffer(buf, size);
   read(fds[new_fd], buf, size);
+  lseek(fds[new_fd], 0, SEEK_SET);
   return 0;
 }
 
