@@ -110,6 +110,11 @@ int main(int argc, char *argv[]) {
       case 'n':
         current_file = (current_file + 1) % (argc - 1);
         break;
+      case 'b':
+        if (current_file - 1 >= 0) {
+          current_file--;
+        }
+        break;
     }
   }
 
