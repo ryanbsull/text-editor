@@ -12,7 +12,6 @@ int get_user_input(char *input, int *bytes_read, int buf_size) {
   size_t size = 0;
   while (!feof(stdin)) {
     len = getline(&buffer, &size, stdin);
-    printf("%d\n", len);
     if (len > 0) {
       if (len == 2 && buffer[0] == '.') break;
       if (*bytes_read + len > buf_size) return 1;
@@ -20,6 +19,13 @@ int get_user_input(char *input, int *bytes_read, int buf_size) {
       *bytes_read += len;
     }
   }
+  return 0;
+}
+
+int insert(int fds[], int file, char *wr_buf, int len) {
+  lseek(fds[file], 0, SEEK_SET);
+  write(fds[file], wr_buf, len);
+  lseek(fds[file], 0, SEEK_SET);
   return 0;
 }
 
@@ -106,6 +112,10 @@ int main(int argc, char *argv[]) {
       case 'a':
         get_user_input(in_buf, &buf_len, screen_size);
         append(fds, current_file, in_buf, buf_len);
+        break;
+      case 'i':
+        get_user_input(in_buf, &buf_len, screen_size);
+        insert(fds, current_file, in_buf, buf_len);
         break;
       case 'n':
         current_file = (current_file + 1) % (argc - 1);
