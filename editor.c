@@ -5,15 +5,20 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
+int clear_buffer(char *buf, int size) {
+  for (int i = 0; i < size; i++) buf[i] = '\0';
+  return 0;
+}
+
 int get_user_input(char *input, int *bytes_read, int buf_size) {
-  memset(input, 0, buf_size);
+  clear_buffer(input, buf_size);
   char *buffer = NULL;
   int len = 0;
   size_t size = 0;
   while (!feof(stdin)) {
     len = getline(&buffer, &size, stdin);
     if (len > 0) {
-      if (len == 2 && buffer[0] == '.') break;
+      if (len == 2 && buffer[0] == '.') return 0;
       if (*bytes_read + len > buf_size) return 1;
       strcat(input, buffer);
       *bytes_read += len;
@@ -22,9 +27,13 @@ int get_user_input(char *input, int *bytes_read, int buf_size) {
   return 0;
 }
 
-int insert(int fds[], int file, char *wr_buf, int len) {
+int insert(int fds[], int file, char *wr_buf, int len, int file_size) {
+  char *tmp = (char *)malloc(file_size);
+  memcpy(tmp, wr_buf, len);
+  read(fds[file], (tmp + len), file_size - len);
+
   lseek(fds[file], 0, SEEK_SET);
-  write(fds[file], wr_buf, len);
+  write(fds[file], tmp, file_size);
   lseek(fds[file], 0, SEEK_SET);
   return 0;
 }
@@ -65,11 +74,6 @@ int cleanup(int argc, int fds[], char *in_buf, char *f_buf) {
   return 0;
 }
 
-int clear_buffer(char *buf, int size) {
-  for (int i = 0; i < size; i++) buf[i] = '\0';
-  return 0;
-}
-
 int change_view(char *buf, int size, int *fds, int new_fd) {
   clear_buffer(buf, size);
   read(fds[new_fd], buf, size);
@@ -79,7 +83,7 @@ int change_view(char *buf, int size, int *fds, int new_fd) {
 
 int main(int argc, char *argv[]) {
   static int current_file = 0;
-  int *fds, buf_len;
+  int *fds, buf_len = 0;
   char *file_buf, *in_buf;
   int screen_size, done = 0, op = 0;
   struct winsize w;
@@ -115,7 +119,7 @@ int main(int argc, char *argv[]) {
         break;
       case 'i':
         get_user_input(in_buf, &buf_len, screen_size);
-        insert(fds, current_file, in_buf, buf_len);
+        insert(fds, current_file, in_buf, buf_len, screen_size);
         break;
       case 'n':
         current_file = (current_file + 1) % (argc - 1);
