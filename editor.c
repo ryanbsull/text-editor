@@ -93,6 +93,8 @@ int main(int argc, char *argv[]) {
       case 'b':
         if (current_file - 1 >= 0) {
           current_file--;
+        } else {
+          current_file = argc - 2;  // loop around to the end
         }
         break;
     }
