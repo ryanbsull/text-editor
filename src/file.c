@@ -6,14 +6,15 @@
 
 #include "../include/file.h"
 
-int insert(int fds[], int file, char *wr_buf, int len, int file_size) {
+int insert(int fds[], int file, char *wr_buf, int len, int file_size,
+           int offset) {
   char *tmp = (char *)malloc(file_size);
   memcpy(tmp, wr_buf, len);
   read(fds[file], (tmp + len), file_size - len);
 
-  lseek(fds[file], 0, SEEK_SET);
+  lseek(fds[file], offset, SEEK_SET);
   write(fds[file], tmp, file_size);
-  lseek(fds[file], 0, SEEK_SET);
+  lseek(fds[file], offset, SEEK_SET);
   return 0;
 }
 

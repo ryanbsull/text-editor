@@ -52,6 +52,7 @@ int main(int argc, char *argv[]) {
   int *fds, buf_len = 0;
   char *file_buf, *in_buf;
   int screen_size, done = 0, op = 0;
+  int offset = 0;
   struct winsize w;
   ioctl(0, TIOCGWINSZ, &w);
 
@@ -72,30 +73,35 @@ int main(int argc, char *argv[]) {
 
     if (strlen(in_buf) < 1) return 1;
     switch (in_buf[0]) {
-      case 'q':
-        done = 1;
-        break;
-      case 'p':
-        change_view(file_buf, screen_size, fds, current_file);
-        printf("%s\n", file_buf);
-        break;
       case 'a':
         get_user_input(in_buf, &buf_len, screen_size);
         append(fds, current_file, in_buf, buf_len);
         break;
-      case 'i':
-        get_user_input(in_buf, &buf_len, screen_size);
-        insert(fds, current_file, in_buf, buf_len, screen_size);
-        break;
-      case 'n':
-        current_file = (current_file + 1) % (argc - 1);
-        break;
       case 'b':
+        offset = 0;
         if (current_file - 1 >= 0) {
           current_file--;
         } else {
           current_file = argc - 2;  // loop around to the end
         }
+        break;
+      case 'g':
+        if (strlen(in_buf) == 1) break;
+        offset = atoi(in_buf + 1);
+      case 'i':
+        get_user_input(in_buf, &buf_len, screen_size);
+        insert(fds, current_file, in_buf, buf_len, screen_size, offset);
+        break;
+      case 'n':
+        offset = 0;
+        current_file = (current_file + 1) % (argc - 1);
+        break;
+      case 'p':
+        change_view(file_buf, screen_size, fds, current_file);
+        printf("%s\n", file_buf);
+        break;
+      case 'q':
+        done = 1;
         break;
     }
   }
