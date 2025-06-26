@@ -29,15 +29,16 @@ int get_user_input(char *input, int *bytes_read, int buf_size) {
 }
 
 int cleanup(int argc, int fds[], char *in_buf, char *f_buf) {
+  int err = 0;
   for (int i = 1; i < argc; i++) {
     if (close(fds[i - 1]) == -1) {
       printf("ERROR: Unable to close file: %d\n", fds[i - 1]);
-      return 1;
+      err = 1;
     }
   }
   free(in_buf);
   free(f_buf);
-  return 0;
+  return err;
 }
 
 int change_view(char *buf, int size, int *fds, int new_fd) {
