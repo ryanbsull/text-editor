@@ -37,7 +37,27 @@ int open_files(int argc, char *files[], int *fds[]) {
   for (int i = 1; i < argc; i++) {
     if (((*fds)[i - 1] = open(files[i], O_RDWR)) == -1) {
       printf("ERROR: Unable to open file: %s\n", files[i]);
+      return 1;
     }
   }
-  return 1;
+  return 0;
+}
+
+int remove_file(int *argc, int *fds[], int *remove_file) {
+  (*argc)--;
+  if (*argc == 1) return 1;
+
+  int *tmp = (int *)malloc((*argc - 1) * sizeof(int));
+  int idx = 0;
+  for (int i = 0; i < *argc - 1; i++) {
+    if (i != *remove_file) {
+      tmp[idx++] = *fds[i];
+    }
+  }
+
+  *remove_file = *remove_file % (*argc - 1);
+  free(*fds);
+  *fds = tmp;
+
+  return 0;
 }

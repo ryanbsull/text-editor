@@ -86,6 +86,9 @@ int main(int argc, char *argv[]) {
           current_file = argc - 2;  // loop around to the end
         }
         break;
+      case 'c':
+        remove_file(&argc, &fds, &current_file);
+        break;
       case 'g':
         if (strlen(in_buf) == 1) break;
         offset = atoi(in_buf + 1);
