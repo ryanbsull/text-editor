@@ -5,5 +5,6 @@ int insert(int fds[], int file, char *wr_buf, int len, int file_size,
 int append(int fds[], int file, char *wr_buf, int len);
 int verify(int argc, char *files[]);
 int open_files(int argc, char *files[], int *fds[]);
+int open_file(int *argc, int *fds[], char *new_file);
 int remove_file(int *argc, int *fds[], int *remove_file);
 #endif

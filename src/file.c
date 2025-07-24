@@ -6,6 +6,18 @@
 
 #include "../include/file.h"
 
+int open_file(int *argc, int *fds[], char *new_file) {
+  (*argc)++;
+  int *new_fds = (int *)malloc((*argc - 1) * sizeof(int));
+  for (int i = 0; i < *argc - 1; i++) {
+    new_fds[i] = *fds[i];
+  }
+  new_fds[*argc - 1] = open(new_file, O_RDWR);
+  *fds = new_fds;
+
+  return 0;
+}
+
 int insert(int fds[], int file, char *wr_buf, int len, int file_size,
            int offset) {
   char *tmp = (char *)malloc(file_size);
